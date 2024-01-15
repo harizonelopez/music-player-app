@@ -1,0 +1,61 @@
+# Dev_@ladinh production
+# Music player app
+
+from pygame import mixer
+
+MUSIC_FILE_PATH = "E:/Denno/DNI Media/Muzics/futuresongs.mp3"
+
+def initialize_mixer():
+    mixer.init()
+
+def load_and_play_music():
+    mixer.music.load(MUSIC_FILE_PATH)
+    mixer.music.set_volume(0.3)
+    mixer.music.play()
+
+def print_menu():
+    print("\n***Welcome to the Music player app***")
+    print("""
+        Press the letters to:
+        1. 'P' -> pause
+        2. 'R' -> resume
+        3. 'V' -> set volume
+        4. 'E' -> exit""")
+
+def process_command():
+    while True:
+        command_input = input("  \nEnter command:-> ").lower()
+        if command_input == "p":
+            mixer.music.pause()
+            print("  $$music paused$$")
+        elif command_input == "r":
+            mixer.music.unpause()
+            print("  $$music resumed$$")
+        elif command_input == "v":
+            set_volume()
+        elif command_input == "e":
+            exit_music_player()
+        else:
+            print("  $$!!ERROR!!, invalid input. Try again$$")
+            continue
+
+def set_volume():
+    try:
+        v = float(input("  :->Enter volume {0 to 1}:-> "))
+        mixer.music.set_volume(v)
+        v_p = int(v * 100)
+        print(f"  $$Volume set to {v_p}% $$")
+        
+    except ValueError:
+        print("  $$!!ERROR!!, invalid input. Try again$$")
+
+def exit_music_player():
+    mixer.music.stop()
+    print("  $$Exiting music player app$$\n")
+    exit()
+
+if __name__ == "__main__":
+    initialize_mixer()
+    load_and_play_music()
+    print_menu()
+    process_command()
