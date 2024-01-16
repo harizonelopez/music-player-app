@@ -5,6 +5,7 @@ from pygame import mixer
 import threading
 import os
 import pygame
+from tkinter import Tk,
 
 MUSIC_DIRECTORY = "E:/Denno/DNI Media/Muzics/"
 
