@@ -4,6 +4,7 @@
 from pygame import mixer
 import threading
 import os
+import pygame
 
 MUSIC_DIRECTORY = "E:/Denno/DNI Media/Muzics/"
 
