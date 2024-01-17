@@ -1,75 +1,155 @@
 # Dev_@ladinh production
-# Music player app
+# GUI Music player app
 
 from pygame import mixer
 import threading
 import os
+from tkinter import Tk, Label, Button, Entry, StringVar, PhotoImage, filedialog, Scale, IntVar
 import pygame
-from tkinter import Tk,
+from PIL import Image, ImageTk
+import tkinter as tk
+from tkinter import ttk
+import time
 
 MUSIC_DIRECTORY = "E:/Denno/DNI Media/Muzics/"
+IMAGE_PATH = "E:/Denno/DNI Media/Pics album/4D Media/1678910910322.jpg"
 
-def initialize_mixer():
-    mixer.init()
+class MusicPlayerApp:
+    def __init__(self, master):
+        self.master = master
+        master.title("Dev_@ladinh production")
 
-def play_music(song_name):
-    try:
-        song_path = os.path.join(MUSIC_DIRECTORY, song_name)
-        mixer.music.load(song_path)
-        mixer.music.set_volume(0.3)
-        mixer.music.play()
+        self.song_name_var = StringVar()
+        self.current_song_var = StringVar()
+        self.song_duration_var = IntVar(value=0)
+        self.song_position_var = IntVar(value=0)
 
-        while mixer.music.get_busy():
+        mixer.init()
+
+        self.image_path = IMAGE_PATH
+        self.original_image = Image.open(self.image_path)
+        self.image = ImageTk.PhotoImage(self.original_image)
+        
+        master.bind("<Configure>", self.resize_image)
+
+        self.image_label = Label(master, image=self.image)
+        self.image_label.pack(fill="both", expand=True)
+
+        self.label = Label(master, text="***MUSIC PLAYER APP***",bg="pink", fg="black")
+        self.label.place(x=230, y=30)
+        
+        self.select_button = Button(master, text="Select Song", command=self.select_song, bg="green")
+        self.select_button.place(x=280, y=330)
+
+        self.play_button = Button(master, text="Play The Song/\nRestart The Song", command=self.play_music, bg="blue")
+        self.play_button.place(x=270, y=350)
+
+        self.pause_button = Button(master, text="Pause\nPlay", command=self.pause_music, bg="red")
+        self.pause_button.place(x=150, y=570)
+
+        self.stop_button = Button(master, text="Resume\nPlay", command=self.resume_music, bg="red")
+        self.stop_button.place(x=400, y=570)
+        
+        self.volume_label = Label(master, text="Volume:", bg="green")
+        self.volume_label.place(x=280, y=550)
+        
+        self.volume_slider = Scale(master, from_=0, to=100, orient="horizontal", command=self.set_volume, bg="orange")
+        self.volume_slider.set(30) 
+        self.volume_slider.place(x=250, y=570)
+        
+        self.time_slider = Scale(master, from_=0, to=100, orient="horizontal", variable=self.song_position_var, command=self.set_song_position)
+        self.time_slider.place(x=250, y=450)
+
+        self.quit_button = Button(master, text="\nEXIT MUSIC PLAYER APP", command=self.exit_music_player, bg="blue")
+        self.quit_button.place(x=250, y=650)
+
+        self.current_song_label = Label(master, textvariable=self.current_song_var, wraplength=300, justify="center", fg="blue", bg="light green")
+        self.current_song_label.place(x=240, y=500)
+
+    def set_song_position(self, position):
+        try:
+            position = float(position)
+            mixer.music.set_pos(position / 100.0)
+        except ValueError:
             pass
-    except:
-        print(f"Error loading or playing the song: {song_name}")
+            #self.display_error("Invalid position input. Please enter a valid number.")
 
-def load_menu():
-    print("\n***Welcome to the Music player app***")
-    print("""
-        Press the letters to:
-        1. 'P' -> pause
-        2. 'R' -> resume
-        3. 'V' -> set volume
-        4. 'E' -> exit""")
-
-def process_command():
-    print(f"Now playing: {song_name}")
-    while True:
-        command_input = input("  \nEnter command:-> ").lower()
-        if command_input == "p":
-            mixer.music.pause()
-            print("  $$music paused$$")
-        elif command_input == "r":
-            mixer.music.unpause()
-            print("  $$music resumed$$")
-        elif command_input == "v":
-            set_volume()
-        elif command_input == "e":
-            exit_music_player()
-        else:
-            print("  $$!!ERROR!!, invalid input. Try again$$")
-            continue
-
-def set_volume():
-    try:
-        v = float(input("::->Enter volume {0 to 1}:-> "))
-        mixer.music.set_volume(v)
-        v_p = int(v * 100)
-        print(f"  $$Volume set to {v_p}% $$")
-    except ValueError:
-        print("  $$!!ERROR!!, invalid input. Try again$$")
-
-def exit_music_player():
-    mixer.music.stop()
-    print("  $$Exiting music player app$$\n")
-    exit()
-
-if __name__ == "__main__":
-    initialize_mixer()
-    load_menu()
-    song_name = input("\nEnter the song name:-> ")
-    music_thread = threading.Thread(target=play_music, args=(song_name,))
-    music_thread.start()
+    def select_song(self):
+        song_path = filedialog.askopenfilename(initialdir=MUSIC_DIRECTORY, title="Select a Song",
+                                               filetypes=(("MP3 files", "*.mp3"), ("all files", "*.*")))
+        if song_path:
+            song_name = os.path.basename(song_path)
+            self.song_name_var.set(song_name)
     
-    process_command()
+    def play_music(self):
+        song_name = self.song_name_var.get()
+        music_thread = threading.Thread(target=self.play_music_thread, args=(song_name,))
+        music_thread.start()
+
+    def pause_music(self):
+        mixer.music.pause()
+
+    def resume_music(self):
+        mixer.music.unpause()
+
+    def play_music_thread(self, song_name):
+        try:
+            song_path = os.path.join(MUSIC_DIRECTORY, song_name)
+            if os.path.exists(song_path):
+                mixer.music.load(song_path)
+                mixer.music.set_volume(0.2)
+                mixer.music.play()
+                self.current_song_var.set(f"Now playing: {song_name}")
+            else:
+                self.display_error(f"Error: Song '{song_name}' not found.")
+
+        except Exception as e:
+            self.display_error(f"Error loading or playing the song: {song_name}, {e}")
+
+    def load_image(self, path):
+        img = Image.open(path)
+        img = ImageTk.PhotoImage(img)
+        return img
+
+    def set_volume(self, volume):
+        try:
+            volume = float(volume) / 100.0
+            mixer.music.set_volume(volume)
+        except ValueError:
+            self.display_error("Invalid volume input. Please enter a valid number.")
+
+    def exit_music_player(self):
+        try:
+            mixer.music.stop()
+            self.master.destroy()
+
+        except pygame.error as e:
+            self.display_error(f"Pygame error: {e}")
+        self.master.destroy()
+
+    def resize_image(self, event):
+        new_width = event.width
+        new_height = event.height
+        resized_image = self.original_image.resize((new_width, new_height), Image.ANTIALIAS)
+        self.image = ImageTk.PhotoImage(resized_image)
+        self.image_label.config(image=self.image)
+        self.image_label.image = self.image
+        
+    def update_time_slider(self):
+        current_time = 0
+        while mixer.get_init():
+            try:
+                current_time = mixer.music.get_pos() / 1000.0 
+                self.song_position_var.set((current_time / self.song_duration_var.get()) * 100)
+                self.master.update()
+            except pygame.error:
+                pass 
+            except Exception as e:
+                print(f"Error updating time slider: {e}")
+            time.sleep(0.1)
+    
+root = Tk()
+root.geometry('600x700')
+root.resizable(False, False)
+app = MusicPlayerApp(root)
+root.mainloop()
