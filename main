@@ -11,7 +11,9 @@ import tkinter as tk
 from tkinter import ttk
 import time
 
+# enter the absolute music folder path
 MUSIC_DIRECTORY = "E:/Denno/DNI Media/Muzics/"
+# enter the absolute background image file path
 IMAGE_PATH = "E:/Denno/DNI Media/Pics album/4D Media/1678910910322.jpg"
 
 class MusicPlayerApp:
@@ -21,8 +23,6 @@ class MusicPlayerApp:
 
         self.song_name_var = StringVar()
         self.current_song_var = StringVar()
-        self.song_duration_var = IntVar(value=0)
-        self.song_position_var = IntVar(value=0)
 
         mixer.init()
 
@@ -65,15 +65,7 @@ class MusicPlayerApp:
 
         self.current_song_label = Label(master, textvariable=self.current_song_var, wraplength=300, justify="center", fg="blue", bg="light green")
         self.current_song_label.place(x=240, y=500)
-
-    def set_song_position(self, position):
-        try:
-            position = float(position)
-            mixer.music.set_pos(position / 100.0)
-        except ValueError:
-            pass
-            #self.display_error("Invalid position input. Please enter a valid number.")
-
+            
     def select_song(self):
         song_path = filedialog.askopenfilename(initialdir=MUSIC_DIRECTORY, title="Select a Song",
                                                filetypes=(("MP3 files", "*.mp3"), ("all files", "*.*")))
@@ -135,19 +127,6 @@ class MusicPlayerApp:
         self.image_label.config(image=self.image)
         self.image_label.image = self.image
         
-    def update_time_slider(self):
-        current_time = 0
-        while mixer.get_init():
-            try:
-                current_time = mixer.music.get_pos() / 1000.0 
-                self.song_position_var.set((current_time / self.song_duration_var.get()) * 100)
-                self.master.update()
-            except pygame.error:
-                pass 
-            except Exception as e:
-                print(f"Error updating time slider: {e}")
-            time.sleep(0.1)
-    
 root = Tk()
 root.geometry('600x700')
 root.resizable(False, False)
