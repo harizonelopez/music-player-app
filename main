@@ -97,7 +97,7 @@ class MusicPlayerApp:
             song_path = os.path.join(MUSIC_DIRECTORY, song_name)
             if os.path.exists(song_path):
                 mixer.music.load(song_path)
-                mixer.music.set_volume(0.2)
+                mixer.music.set_volume(0.5)
                 mixer.music.play()
                 self.current_song_var.set(f"Now playing: {song_name}")
             else:
